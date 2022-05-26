@@ -94,7 +94,7 @@ end
 
 
 %asignacion de valor nuevo a ta
- fprintf("U: "+nuevot+"\n"); 
+
 ta = tsim + nuevot; 
 
 end
