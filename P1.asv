@@ -22,8 +22,8 @@ lambda = [ 0.0005, 0 .005, 0.03 ] ; % Tasa de generacion de paquetes por segundo
 
 %indices de valores de miniranuras, N°de nodos por grado y del valor de lambda
 W_index=1;
-N_index=2;
-lambda_index=2;
+N_index=3;
+lambda_index=1;
 
 %duracion ranura
 T=durDATA+durRTS+durCTS+DIFS+durACK+3*SIFS+sigma.*W(W_index);
@@ -31,8 +31,8 @@ T=durDATA+durRTS+durCTS+DIFS+durACK+3*SIFS+sigma.*W(W_index);
 %Ciclo de trabajo 
 Tc = (2+Epsilon).*T;
 
-tsim = 0; % tiempo de simulacion inicia en 0
-ta=-1; %valor para que ta sea menor a tsim al inicio del n ciclos
+tsim = 0.00000000001; % tiempo de simulacion inicia en 0
+ta=0; %valor para que ta sea menor a tsim al inicio del n ciclos
 
 
 %inicializcion de buffers y contador paquetes
@@ -43,18 +43,16 @@ Pkt=[];
 %variables contadoras
 n_paquetes=0;
 
-for t=1:500*Tc
+for t=1:10000*Tc
 
     if ta<tsim
         
         lambda_2=lambda(1)*N(N_index)*I;
-        display(n_paquetes)
         [ta ,n_paquetes,Buffer,Pkt]=arribo(ta,tsim,lambda_2,N,N_index,I,n_paquetes,Buffer,Pkt);
-        display(n_paquetes)
         %falta guardar el nuevo paquete en el buffer
     end
 
-    tsim = tsim + Tc;
+
 end
 
 %generacion de nuevo paquete y asignacion al buffer
@@ -66,9 +64,9 @@ U = (1e6*rand())/1e6;
 nuevot = -(1/lambda_2)*log(1-U);
 %nodo y grado aleatorio
 nodo_random=randsample(N(N_index),1);
-% display(nodo_random)
+display(nodo_random)
 grado_random= randsample(I,1);
-% display(grado_random)
+display(grado_random)
 
 %generacion y asignacion de paquetes
 
