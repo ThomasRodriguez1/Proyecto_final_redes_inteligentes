@@ -2,6 +2,8 @@ clear all;
 close all;
 clc;
 
+%Hola Thomas
+
 %definicion de variables duante la ventana de Backoff
 DIFS = 10e-3; % Espacio entre tramas diferencial 
 SIFS = 5e-3; % Espacio entre tramas (debido a que la Tx no es instantanea)
