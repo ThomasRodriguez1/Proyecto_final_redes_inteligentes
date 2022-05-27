@@ -86,7 +86,7 @@ Pkt(n_paquetes,4) = ta;
 if Buffer(15,nodo_random,grado_random)==0
     
         Buffer(15,nodo_random,grado_random)=n_paquetes;
-        Buffer(:,nodo_random,grado_random)=FIFO_buffer(Buffer(:,nodo_random,grado_random));%Funcion para recorrer el buffer 
+        Buffer(:,nodo_random,grado_random)=FIFO_buffer(Buffer(:,nodo_random,grado_random));%Funcion para recorrer el buffer %
 else
     
         Pkt(n_paquetes,5)=3;
@@ -101,15 +101,15 @@ end
 
 function [Aux]=FIFO_buffer(Buffer)
 
-Aux=Buffer.';%transpuesta por estar en forma de columna
+Aux=Buffer.';
 len_aux=length(Aux);
 
-Aux=Aux(Aux~=0);%quita todos los 0 que sobren para ir en forma de FIFO con respecto al ultimo paquete agregado
+Aux=Aux(Aux~=0);%quita todos los 0 que sobren 
 len_aux2=length(Aux);
 
 len_aux_faltante=len_aux-len_aux2;%ceros faltantes
 
-Aux=[Aux zeros(1,len_aux_faltante)].';%transpuesta regresando la columna
+Aux=[Aux zeros(1,len_aux_faltante)].';%transpuesta
 
 end
 
