@@ -1,4 +1,4 @@
-clear all;
+clear;
 close all;
 clc;
 
@@ -33,28 +33,47 @@ T=durDATA+durRTS+durCTS+DIFS+durACK+3*SIFS+sigma.*W(W_index);
 %Ciclo de trabajo 
 Tc = (2+Epsilon).*T;
 
-tsim = 0.00000000001; % tiempo de simulacion inicia en 0
+tsim = 0.000000000000001; % tiempo de simulacion inicia en 0
 ta=0; %valor para que ta sea menor a tsim al inicio del n ciclos
 
 
 %inicializcion de buffers y contador paquetes
-
+N_zeros=500000;
 Buffer = zeros(K,N(N_index),I); %K,Nodos,Grados
+Pkt=zeros(N_zeros,5);%cantidad de paquetes, susceptible a cambio en base a N_zeros
 
-Pkt=[];
+
 
 %variables contadoras
 n_paquetes=0;
 
-for t=1:500*Tc
+for t=1:10000*Tc
 
     if ta<tsim
         
         lambda_2=lambda(lambda_index)*N(N_index)*I;
-        [ta ,n_paquetes,Buffer,Pkt]=arribo(ta,tsim,lambda_2,N,N_index,I,n_paquetes,Buffer,Pkt);%funcion para generar 
+        %nodo y grado aleatorio
+        nodo_random=randsample(N(N_index),1);
+        grado_random= randsample(I,1);
+        %Variable AUX que obtiene los paquetes del buffer del nodo
+        %aleatorio
+        Aux=Buffer(:,nodo_random,grado_random);
         
+        [ta ,n_paquetes,Aux,Pkt_aux]=arribo(ta,tsim,lambda_2,n_paquetes,Aux,nodo_random,grado_random);%funcion para generar arribo y paquete
+        Buffer(:,nodo_random,grado_random)=Aux;
+        Pkt(n_paquetes,:)=Pkt_aux;
     end
+    
+%     if mod(t, Tc) == 0 
+%         for i=I:-1:1 %grado mas alto a mas bajo
+%             for k=1:N(N_index)
+%                 
+%                 backoff()
+%             end
+%         end
+%     end
 
+    
     tsim = tsim + Tc;
 end
 
@@ -62,36 +81,33 @@ end
 
 
 
-%Generacion de nuevo paquete y asignacion al buffer
-function [ta,n_paquetes,Buffer,Pkt]=arribo(ta,tsim,lambda_2,N,N_index,I,n_paquetes,Buffer,Pkt)
 
+%Generacion de nuevo paquete y asignacion al buffer
+function [ta,n_paquetes,Aux,Pkt_aux]=arribo(ta,tsim,lambda_2,n_paquetes,Aux,nodo_random,grado_random)
+
+Pkt_aux=zeros(1,5);
 U = (1e6*rand())/1e6; 
 %generacion de tiempo aleatorio
 nuevot = -(1/lambda_2)*log(1-U);
-%nodo y grado aleatorio
-nodo_random=randsample(N(N_index),1);
-% display(nodo_random)
-grado_random= randsample(I,1);
-% display(grado_random)
 
 %generacion y asignacion de paquetes
 
 n_paquetes=n_paquetes+1;
 
-Pkt(n_paquetes,1) = n_paquetes;
-Pkt(n_paquetes,2) = nodo_random;
-Pkt(n_paquetes,3) = grado_random;
-Pkt(n_paquetes,4) = ta;
+Pkt_aux(1) = n_paquetes;
+Pkt_aux(2) = nodo_random;
+Pkt_aux(3) = grado_random;
+Pkt_aux(4) = ta;
 
 %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
 
-if Buffer(15,nodo_random,grado_random)==0
+if Aux(15)==0
     
-        Buffer(15,nodo_random,grado_random)=n_paquetes;
-        Buffer(:,nodo_random,grado_random)=FIFO_buffer(Buffer(:,nodo_random,grado_random));%Funcion para recorrer el buffer 
+        Aux(15)=n_paquetes;
+        Aux=FIFO_buffer(Aux);%Funcion para recorrer el buffer 
 else
     
-        Pkt(n_paquetes,5)=3;
+        Pkt_aux(5)=3;
 end
 
 
