@@ -45,13 +45,22 @@ Pkt=zeros(N_zeros,6);%cantidad de paquetes, susceptible a cambio en base a N_zer
 backoff=zeros(N(N_index),I);%Array para los contendientes de paquetes a enviar
 
 
-
 %variables contadoras
 n_ciclos=0;
 n_paquetes=0;
 n_colisiones=0;
 n_paquetes_sink=0;%paquetes que llegaron al nodo sink
 Throughput=zeros(1,I);%Paquetes exitosos por grado
+
+%arrays para guardar las estadisticas de los paquetes 
+a_colisiones = zeros(1,7);
+aux_n_colisiones_1 = 0;
+aux_n_colisiones_2 = 0;
+aux_n_colisiones_3 = 0;
+aux_n_colisiones_4 = 0;
+aux_n_colisiones_5 = 0;
+aux_n_colisiones_6 = 0;
+aux_n_colisiones_7 = 0;
 
 for t=1:300000*Tc
 
@@ -112,6 +121,27 @@ for t=1:300000*Tc
                 else
                     for col=1:len_colision
                         n_colisiones=n_colisiones+1;
+                        
+                        %asignamos a cada grado, el numero de paquetes que
+                        %colicionan en el
+                        if (grado == 1)
+                            aux_n_colisiones_1 = aux_n_colisiones_1 + 1;
+                        elseif (grado == 2)
+                            aux_n_colisiones_2 = aux_n_colisiones_2 + 1;
+                        elseif (grado == 3)
+                            aux_n_colisiones_3 = aux_n_colisiones_3 + 1;
+                        elseif (grado == 4)
+                            aux_n_colisiones_4 = aux_n_colisiones_4 + 1;
+                        elseif (grado == 5)
+                            aux_n_colisiones_5 = aux_n_colisiones_5 + 1;
+                        elseif (grado == 6)
+                            aux_n_colisiones_6 = aux_n_colisiones_6 + 1;
+                        elseif (grado == 7)
+                            aux_n_colisiones_7 = aux_n_colisiones_7 + 1;
+                        end
+
+                        a_colisiones =[aux_n_colisiones_1 aux_n_colisiones_2 aux_n_colisiones_3 aux_n_colisiones_4 aux_n_colisiones_5 aux_n_colisiones_6 aux_n_colisiones_7];
+
                         aux_index=Colision(col);%toma el valor del indice del buffer(nodo) en array colisiones
                         aux_colision=Buffer(1,aux_index,grado);
                         Pkt(aux_colision,5)=2; %colocamos estado "2" de colision con otros paquetes
@@ -125,6 +155,25 @@ for t=1:300000*Tc
     %backoff=zeros(I,N(N_index));%Reiniciar conteo de los backoff
     tsim = tsim + Tc;
 end
+
+
+
+%%impresion de estadisticas
+
+%grafica de coliciones por grado
+figure()
+stem(a_colisiones, 'LineWidth',2)
+xlim([0 8])
+title('Paquetes colisionados')
+ylabel('# paquetes colisionados')
+xlabel('Grado')
+grid on
+
+
+
+
+
+
 
 
 
