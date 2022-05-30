@@ -57,10 +57,20 @@ a_colisiones = zeros(1,7);
 aux_n_colisiones_1 = 0;
 aux_n_colisiones_2 = 0;
 aux_n_colisiones_3 = 0;
-aux_n_colisiones_4 = 0;
+aux_buffer_ = 0;
 aux_n_colisiones_5 = 0;
 aux_n_colisiones_6 = 0;
 aux_n_colisiones_7 = 0;
+
+%arrays para guardar las estadisticas de los paquetes cuando el buffer este lleno 
+a_buffer_lleno = zeros(1,7);
+aux_buffer_1 = 0;
+aux_buffer_2 = 0;
+aux_buffer_3 = 0;
+aux_buffer_4 = 0;
+aux_buffer_5 = 0;
+aux_buffer_6 = 0;
+aux_buffer_7 = 0;
 
 for t=1:300000*Tc
 
@@ -86,16 +96,16 @@ for t=1:300000*Tc
         for grado=I:-1:1 %grado mas alto a mas bajo
             for nodo=1:N(N_index)
                if Buffer(1,nodo,grado)~=0 %Si el paquete en 1 es diferente de 0 tiene un paquete por enviar
-                backoff(nodo,grado)=randsample(W(W_index),1);
+                   backoff(nodo,grado)=randsample(W(W_index),1);
                else
-                backoff(nodo,grado)=W(W_index)+1; %%Nunca se llegara a este valor, por lo cual se llena cuando no hay paquete que enviar o en el buffer  
+                   backoff(nodo,grado)=W(W_index)+1; %%Nunca se llegara a este valor, por lo cual se llena cuando no hay paquete que enviar o en el buffer  
                end
             end
             %Escoger backoff minimo del grado I
             backoff_min=min(backoff(:,grado));
             
             if backoff_min~=(W(W_index)+1)%%Indica que el valor minimo no es al que no se deberia de llegar
-                
+                    
                 Colision=find(backoff(:,grado)==backoff_min);%Crear array con los valores que encuentra que tengan el mismo backoff
                 len_colision=length(Colision);%longitud de datos en array Colision
                 
@@ -112,6 +122,26 @@ for t=1:300000*Tc
                         else
                             %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
                             Pkt(Aux_n_pkt,5)=3;
+
+                            %asignamos a cada grado, el numero de paquetes que encontraron el buffer lleno
+                            if (grado == 1)
+                                aux_buffer_1 = aux_buffer_1 + 1;
+                            elseif (grado == 2)
+                                aux_buffer_2 = aux_buffer_2 + 1;
+                            elseif (grado == 3)
+                                aux_buffer_3 = aux_buffer_3 + 1;
+                            elseif (grado == 4)
+                                aux_buffer_4 = aux_buffer_4 + 1;
+                            elseif (grado == 5)
+                                aux_buffer_5 = aux_buffer_5 + 1;
+                            elseif (grado == 6)
+                                aux_buffer_6 = aux_buffer_6 + 1;
+                            elseif (grado == 7)
+                                aux_buffer_7 = aux_buffer_7 + 1;
+                            end
+
+                            a_buffer_lleno =[aux_buffer_1 aux_buffer_2 aux_buffer_3 aux_buffer_4 aux_buffer_5 aux_buffer_6 aux_buffer_7];
+                            
                         end
                     else %cuando grado=1
                         Pkt(Aux_n_pkt,6)=tsim;%indica el tiempo que tomo para que este lograra llegar al nodo sink
@@ -131,7 +161,7 @@ for t=1:300000*Tc
                         elseif (grado == 3)
                             aux_n_colisiones_3 = aux_n_colisiones_3 + 1;
                         elseif (grado == 4)
-                            aux_n_colisiones_4 = aux_n_colisiones_4 + 1;
+                            aux_buffer_ = aux_buffer_ + 1;
                         elseif (grado == 5)
                             aux_n_colisiones_5 = aux_n_colisiones_5 + 1;
                         elseif (grado == 6)
@@ -140,7 +170,7 @@ for t=1:300000*Tc
                             aux_n_colisiones_7 = aux_n_colisiones_7 + 1;
                         end
 
-                        a_colisiones =[aux_n_colisiones_1 aux_n_colisiones_2 aux_n_colisiones_3 aux_n_colisiones_4 aux_n_colisiones_5 aux_n_colisiones_6 aux_n_colisiones_7];
+                        a_colisiones =[aux_n_colisiones_1 aux_n_colisiones_2 aux_n_colisiones_3 aux_buffer_ aux_n_colisiones_5 aux_n_colisiones_6 aux_n_colisiones_7];
 
                         aux_index=Colision(col);%toma el valor del indice del buffer(nodo) en array colisiones
                         aux_colision=Buffer(1,aux_index,grado);
@@ -169,13 +199,29 @@ ylabel('# paquetes colisionados')
 xlabel('Grado')
 grid on
 
-
 %paquetes exitosos
 figure()
 stem( Throughput, 'LineWidth',2)
 xlim([0 8])
 title('Throughput')
 ylabel('Paquetes transmitidos exitosamente')
+xlabel('Grado')
+grid on
+
+%grafica de los paquetes que encontaron el buffer lleno por grado
+figure()
+stem(a_buffer_lleno, 'LineWidth',2)
+xlim([0 8])
+title('Paquetes que encontraron el buffer lleno')
+ylabel('# paquetes sin Tx')
+xlabel('Grado')
+grid on
+
+figure()
+stem(a_colisiones + a_buffer_lleno, 'LineWidth',2)
+xlim([0 8])
+title('Paquetes perdidos por grado')
+ylabel('# paquetes perdidos')
 xlabel('Grado')
 grid on
 
@@ -203,7 +249,7 @@ Pkt_aux(1) = n_paquetes;
 Pkt_aux(2) = nodo_random;
 Pkt_aux(3) = grado_random;
 Pkt_aux(4) = ta;
-
+aux_buffer_1 = 0 ;
 %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
 
 if Aux(15)==0
@@ -213,6 +259,26 @@ if Aux(15)==0
 else
     
         Pkt_aux(5)=3;
+
+%         %asignamos a cada grado, el numero de paquetes que encontraron el buffer lleno
+%         if (grado == 1)
+%             aux_buffer_1 = aux_buffer_1 + 1;
+%         elseif (grado == 2)
+%             aux_buffer_2 = aux_buffer_1 + 1;
+%         elseif (grado == 3)
+%             aux_buffer_2 = aux_buffer_1 + 1;
+%         elseif (grado == 4)
+%             aux_buffer_4 = aux_buffer_1 + 1;
+%         elseif (grado == 5)
+%             aux_buffer_1 = aux_buffer_1 + 1;
+%         elseif (grado == 6)
+%             aux_buffer_1 = aux_buffer_1 + 1;
+%         elseif (grado == 7)
+%             aux_buffer_1 = aux_buffer_1 + 1;
+%         end
+%         
+%         a_buffer_lleno =[aux_buffer_1 aux_buffer_2 aux_buffer_3 aux_buffer_4 aux_buffer_5 aux_buffer_6 aux_buffer_7];
+%                             
 end
 
 
