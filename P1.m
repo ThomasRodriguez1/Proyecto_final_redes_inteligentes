@@ -70,7 +70,7 @@ for t=1:300000*Tc
         %nodo y grado aleatorio
         nodo_random=randsample(N(N_index),1);
         grado_random= randsample(I,1);
-        %Variable AUX que obtiene los paquetes del buffer del nodo
+        %Variable AUX que obtiene los paquetes del del nodo
         %aleatorio
         Aux=Buffer(:,nodo_random,grado_random);
         
@@ -170,7 +170,14 @@ xlabel('Grado')
 grid on
 
 
-
+%paquetes exitosos
+figure()
+stem( Throughput, 'LineWidth',2)
+xlim([0 8])
+title('Throughput')
+ylabel('Paquetes transmitidos exitosamente')
+xlabel('Grado')
+grid on
 
 
 
