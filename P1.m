@@ -45,54 +45,58 @@ Pkt=zeros(N_zeros,6);%cantidad de paquetes, susceptible a cambio en base a N_zer
 backoff=zeros(N(N_index),I);%Array para los contendientes de paquetes a enviar
 
 
+
 %variables contadoras
 n_ciclos=0;
 n_paquetes=0;
 n_colisiones=0;
-nodo_random=0;
-grado_random=1;
 n_paquetes_sink=0;%paquetes que llegaron al nodo sink
 Throughput=zeros(1,I);%Paquetes exitosos por grado
 
 %arrays para guardar las estadisticas de los paquetes 
 a_colisiones = zeros(1,7);
 aux_buffer_ = 0;
-aux_n_colisiones_1 = 0;
-aux_n_colisiones_2 = 0;
-aux_n_colisiones_3 = 0;
-aux_n_colisiones_5 = 0;
-aux_n_colisiones_6 = 0;
-aux_n_colisiones_7 = 0;
 
 %arrays para guardar las estadisticas de los paquetes cuando el buffer este lleno 
-a_buffer_lleno = zeros(1,7);
-aux_buffer_1 = 0;
-aux_buffer_2 = 0;
-aux_buffer_3 = 0;
-aux_buffer_4 = 0;
-aux_buffer_5 = 0;
-aux_buffer_6 = 0;
-aux_buffer_7 = 0;
+a_buffer_lleno=zeros(1,7);
 
-for t=1:30000000*Tc
 
-    if ta<tsim
+%iniciamos asignando nodo a grado
+lambda_2=lambda(lambda_index)*N(N_index)*I;
+nodo_random=randi(N(N_index),1);
+grado_random= randi([2 I],1) ;
+U = (1e6*rand())/1e6; 
+nuevot = -(1/lambda_2)*log(1-U);
+ta=tsim+nuevot;
+
+for t=1:300000
+
+    while ta<tsim
+        if Buffer(15,nodo_random,grado_random)==0
+            Aux=Buffer(:,nodo_random,grado_random);  %Variable AUX que obtiene los paquetes del del nodo aleatorio
+            [n_paquetes,Aux,Pkt_aux]=arribo(ta,n_paquetes,Aux,nodo_random,grado_random);%funcion para generar arribo y paquete
+            Buffer(:,nodo_random,grado_random)=Aux;
+            Pkt(n_paquetes,:)=Pkt_aux;
+        else
+            for e=1:I
+                if e==grado_random
+                    a_buffer_lleno(e)=a_buffer_lleno(e)+1;%Aumenta contador de paquetes perdidos por buffer lleno
+                end
+            end
+        end
         
-        lambda_2=lambda(lambda_index)*N(N_index)*I;
+        %generacion de tiempo aleatorio
+        U = (1e6*rand())/1e6; 
+        nuevot = -(1/lambda_2)*log(1-U);
+        ta=tsim+nuevot;
+        
         %nodo y grado aleatorio
         nodo_random=randi(N(N_index),1);
         grado_random= randi([2 I],1) ;
-        %Variable AUX que obtiene los paquetes del del nodo
-        %aleatorio
-        Aux=Buffer(:,nodo_random,grado_random);
-        
-        [ta ,n_paquetes,Aux,Pkt_aux]=arribo(ta,tsim,lambda_2,n_paquetes,Aux,nodo_random,grado_random);%funcion para generar arribo y paquete
-        Buffer(:,nodo_random,grado_random)=Aux;
-        Pkt(n_paquetes,:)=Pkt_aux;
-       
+      
     end
     
-    if mod(t, Tc) == 0 
+    
         n_ciclos=n_ciclos+1;
         %GENERADOR DE BACKOFF
         for grado=I:-1:1 %grado mas alto a mas bajo
@@ -107,7 +111,7 @@ for t=1:30000000*Tc
             backoff_min=min(backoff(:,grado));
             
             if backoff_min~=(W(W_index)+1)%%Indica que el valor minimo no es al que no se deberia de llegar
-                    
+             
                 Colision=find(backoff(:,grado)==backoff_min);%Crear array con los valores que encuentra que tengan el mismo backoff
                 len_colision=length(Colision);%longitud de datos en array Colision
                 
@@ -127,22 +131,14 @@ for t=1:30000000*Tc
                                 Pkt(Aux_n_pkt,5)=3;
 
                                 %asignamos a cada grado, el numero de paquetes que encontraron el buffer lleno
-                                if (grado == 2)
-                                    aux_buffer_2 = aux_buffer_2 + 1;
-                                elseif (grado == 3)
-                                    aux_buffer_3 = aux_buffer_3 + 1;
-                                elseif (grado == 4)
-                                    aux_buffer_4 = aux_buffer_4 + 1;
-                                elseif (grado == 5)
-                                    aux_buffer_5 = aux_buffer_5 + 1;
-                                elseif (grado == 6)
-                                    aux_buffer_6 = aux_buffer_6 + 1;
-                                elseif (grado == 7)
-                                    aux_buffer_7 = aux_buffer_7 + 1;
+                                for e=1:I
+                                    if e==grado
+                                        a_buffer_lleno(e)=a_buffer_lleno(e)+1;%Aumenta contador de paquetes perdidos por buffer lleno
+                                    end
                                 end
                             end
                         else
-                            
+                            Throughput(grado)=Throughput(grado)+1;
                         end
                         
                     else %cuando grado=1
@@ -156,22 +152,11 @@ for t=1:30000000*Tc
                         
                         %asignamos a cada grado, el numero de paquetes que
                         %colicionan en el
-                        if (grado == 1)
-                            aux_n_colisiones_1 = aux_n_colisiones_1 + 1;
-                        elseif (grado == 2)
-                            aux_n_colisiones_2 = aux_n_colisiones_2 + 1;
-                        elseif (grado == 3)
-                            aux_n_colisiones_3 = aux_n_colisiones_3 + 1;
-                        elseif (grado == 4)
-                            aux_buffer_ = aux_buffer_ + 1;
-                        elseif (grado == 5)
-                            aux_n_colisiones_5 = aux_n_colisiones_5 + 1;
-                        elseif (grado == 6)
-                            aux_n_colisiones_6 = aux_n_colisiones_6 + 1;
-                        elseif (grado == 7)
-                            aux_n_colisiones_7 = aux_n_colisiones_7 + 1;
+                        for e=1:I
+                            if e==grado
+                                a_colisiones(e)=a_colisiones(e)+1;%Aumenta contador de paquetes colisionados
+                            end
                         end
-
                         aux_index=Colision(col);%toma el valor del indice del buffer(nodo) en array colisiones
                         aux_colision=Buffer(1,aux_index,grado);
                         Pkt(aux_colision,5)=2; %colocamos estado "2" de colision con otros paquetes
@@ -181,15 +166,15 @@ for t=1:30000000*Tc
                 end
             end
         end 
-    end
+    
+
     %backoff=zeros(I,N(N_index));%Reiniciar conteo de los backoff
     tsim = tsim + Tc;
-    if n_ciclos==300000 %Llega a 300k ciclos y se rompe
-      break
-    end
+%     if n_ciclos==300000 %Llega a 300k ciclos y se rompe
+%       break
+%     end
 end
-a_colisiones =[aux_n_colisiones_1 aux_n_colisiones_2 aux_n_colisiones_3 aux_buffer_ aux_n_colisiones_5 aux_n_colisiones_6 aux_n_colisiones_7];
-a_buffer_lleno =[aux_buffer_1 aux_buffer_2 aux_buffer_3 aux_buffer_4 aux_buffer_5 aux_buffer_6 aux_buffer_7];
+
 
 %%impresion de estadisticas
 
@@ -237,12 +222,9 @@ toc %acaba contador
 
 
 %Generacion de nuevo paquete y asignacion al buffer
-function [ta,n_paquetes,Aux,Pkt_aux]=arribo(ta,tsim,lambda_2,n_paquetes,Aux,nodo_random,grado_random)
+function [n_paquetes,Aux,Pkt_aux]=arribo(ta,n_paquetes,Aux,nodo_random,grado_random)
 
 Pkt_aux=zeros(1,6);
-%generacion de tiempo aleatorio
-U = (1e6*rand())/1e6; 
-nuevot = -(1/lambda_2)*log(1-U);
 
 %generacion y asignacion de paquetes
 
@@ -263,10 +245,6 @@ else
         Pkt_aux(5)=3;
                         
 end
-
-%asignacion de valor nuevo a ta
-
-ta = tsim + nuevot; 
 
 end
 
