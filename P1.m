@@ -2,7 +2,7 @@ clear;
 close all;
 clc;
 
-%Hola Thomas
+tic %inicia contador, acaba en toc
 
 %definicion de variables duante la ventana de Backoff
 DIFS = 10e-3; % Espacio entre tramas diferencial 
@@ -39,7 +39,7 @@ ta=0; %valor para que ta sea menor a tsim al inicio del n ciclos
 
 
 %inicializcion de buffers y contador paquetes
-N_zeros=1500000;
+N_zeros=300000000; %tamaño array general del buffer y de otros
 Buffer = zeros(K,N(N_index),I); %K,Nodos,Grados
 Pkt=zeros(N_zeros,6);%cantidad de paquetes, susceptible a cambio en base a N_zeros [n_paquete,nodo,grado,ta,estado,tiempo_total]
 backoff=zeros(N(N_index),I);%Array para los contendientes de paquetes a enviar
@@ -72,14 +72,14 @@ aux_buffer_5 = 0;
 aux_buffer_6 = 0;
 aux_buffer_7 = 0;
 
-for t=1:300000*Tc
+for t=1:30000000*Tc
 
     if ta<tsim
         
         lambda_2=lambda(lambda_index)*N(N_index)*I;
         %nodo y grado aleatorio
-        nodo_random=randsample(N(N_index),1);
-        grado_random= randsample(I,1);
+        nodo_random=randi(N(N_index),1);
+        grado_random= randi(I,1);
         %Variable AUX que obtiene los paquetes del del nodo
         %aleatorio
         Aux=Buffer(:,nodo_random,grado_random);
@@ -96,7 +96,7 @@ for t=1:300000*Tc
         for grado=I:-1:1 %grado mas alto a mas bajo
             for nodo=1:N(N_index)
                if Buffer(1,nodo,grado)~=0 %Si el paquete en 1 es diferente de 0 tiene un paquete por enviar
-                   backoff(nodo,grado)=randsample(W(W_index),1);
+                   backoff(nodo,grado)=randi(W(W_index),1);
                else
                    backoff(nodo,grado)=W(W_index)+1; %%Nunca se llegara a este valor, por lo cual se llena cuando no hay paquete que enviar o en el buffer  
                end
@@ -124,9 +124,7 @@ for t=1:300000*Tc
                             Pkt(Aux_n_pkt,5)=3;
 
                             %asignamos a cada grado, el numero de paquetes que encontraron el buffer lleno
-                            if (grado == 1)
-                                aux_buffer_1 = aux_buffer_1 + 1;
-                            elseif (grado == 2)
+                            if (grado == 2)
                                 aux_buffer_2 = aux_buffer_2 + 1;
                             elseif (grado == 3)
                                 aux_buffer_3 = aux_buffer_3 + 1;
@@ -181,8 +179,10 @@ for t=1:300000*Tc
     end
     %backoff=zeros(I,N(N_index));%Reiniciar conteo de los backoff
     tsim = tsim + Tc;
+    if n_ciclos==300000 %Llega a 300k ciclos y se rompe
+      break
+    end
 end
-
 a_colisiones =[aux_n_colisiones_1 aux_n_colisiones_2 aux_n_colisiones_3 aux_buffer_ aux_n_colisiones_5 aux_n_colisiones_6 aux_n_colisiones_7];
 a_buffer_lleno =[aux_buffer_1 aux_buffer_2 aux_buffer_3 aux_buffer_4 aux_buffer_5 aux_buffer_6 aux_buffer_7];
 
@@ -223,7 +223,7 @@ ylabel('# paquetes perdidos')
 xlabel('Grado')
 grid on
 
-
+toc %acaba contador
 
 
 
@@ -247,7 +247,6 @@ Pkt_aux(1) = n_paquetes;
 Pkt_aux(2) = nodo_random;
 Pkt_aux(3) = grado_random;
 Pkt_aux(4) = ta;
-aux_buffer_1 = 0 ;
 %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
 
 if Aux(15)==0
@@ -255,30 +254,10 @@ if Aux(15)==0
         Aux(15)=n_paquetes;
         Aux=FIFO_buffer(Aux);%Funcion para recorrer el buffer 
 else
-    
+ 
         Pkt_aux(5)=3;
-
-%         %asignamos a cada grado, el numero de paquetes que encontraron el buffer lleno
-%         if (grado == 1)
-%             aux_buffer_1 = aux_buffer_1 + 1;
-%         elseif (grado == 2)
-%             aux_buffer_2 = aux_buffer_1 + 1;
-%         elseif (grado == 3)
-%             aux_buffer_2 = aux_buffer_1 + 1;
-%         elseif (grado == 4)
-%             aux_buffer_4 = aux_buffer_1 + 1;
-%         elseif (grado == 5)
-%             aux_buffer_1 = aux_buffer_1 + 1;
-%         elseif (grado == 6)
-%             aux_buffer_1 = aux_buffer_1 + 1;
-%         elseif (grado == 7)
-%             aux_buffer_1 = aux_buffer_1 + 1;
-%         end
-%         
-%         a_buffer_lleno =[aux_buffer_1 aux_buffer_2 aux_buffer_3 aux_buffer_4 aux_buffer_5 aux_buffer_6 aux_buffer_7];
-%                             
+                        
 end
-
 
 %asignacion de valor nuevo a ta
 
