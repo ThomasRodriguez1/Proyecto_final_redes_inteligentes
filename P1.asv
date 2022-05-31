@@ -72,8 +72,8 @@ aux_buffer_5 = 0;
 aux_buffer_6 = 0;
 aux_buffer_7 = 0;
 
-for t=1:300000*Tc
-
+while(1)
+n_ciclos2=n_ciclos2+1;
     if ta<tsim
         
         lambda_2=lambda(lambda_index)*N(N_index)*I;
@@ -90,7 +90,7 @@ for t=1:300000*Tc
        
     end
     
-    if mod(t, Tc) == 0 
+    if mod(n_ciclos2, Tc) == 0 
         n_ciclos=n_ciclos+1;
         %GENERADOR DE BACKOFF
         for grado=I:-1:1 %grado mas alto a mas bajo
@@ -181,6 +181,9 @@ for t=1:300000*Tc
     end
     %backoff=zeros(I,N(N_index));%Reiniciar conteo de los backoff
     tsim = tsim + Tc;
+    if n_ciclos2==300000;
+        break;
+    end
 end
 
 a_colisiones =[aux_n_colisiones_1 aux_n_colisiones_2 aux_n_colisiones_3 aux_buffer_ aux_n_colisiones_5 aux_n_colisiones_6 aux_n_colisiones_7];
