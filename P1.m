@@ -49,6 +49,8 @@ backoff=zeros(N(N_index),I);%Array para los contendientes de paquetes a enviar
 n_ciclos=0;
 n_paquetes=0;
 n_colisiones=0;
+nodo_random=0;
+grado_random=1;
 n_paquetes_sink=0;%paquetes que llegaron al nodo sink
 Throughput=zeros(1,I);%Paquetes exitosos por grado
 
@@ -79,7 +81,7 @@ for t=1:30000000*Tc
         lambda_2=lambda(lambda_index)*N(N_index)*I;
         %nodo y grado aleatorio
         nodo_random=randi(N(N_index),1);
-        grado_random= randi(I,1);
+        grado_random= randi([2 I],1) ;
         %Variable AUX que obtiene los paquetes del del nodo
         %aleatorio
         Aux=Buffer(:,nodo_random,grado_random);
@@ -115,31 +117,34 @@ for t=1:30000000*Tc
                     Buffer(:,Colision(1),grado)=FIFO_buffer(Buffer(:,nodo_random,grado_random));
                     
                     if grado~=1 %nodo Sink, por lo tanto no hay porque agregar mas paquetes a otros nodos 
-                        if Buffer(15,Colision(1),grado-1)==0  %que la cola del buffer tenga espacio para otro paquete
-                            Buffer(15,Colision(1),grado-1)=Aux_n_pkt;%se le asigna el numero del paquete tomado anteriormente
-                            Buffer(:,Colision(1),grado-1)=FIFO_buffer(Buffer(:,Colision(1),grado-1));
-                            Throughput(grado)=Throughput(grado)+1;
-                        else
-                            %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
-                            Pkt(Aux_n_pkt,5)=3;
+                        if grado-1~=1
+                            if Buffer(15,Colision(1),grado-1)==0  %que la cola del buffer tenga espacio para otro paquete
+                                Buffer(15,Colision(1),grado-1)=Aux_n_pkt;%se le asigna el numero del paquete tomado anteriormente
+                                Buffer(:,Colision(1),grado-1)=FIFO_buffer(Buffer(:,Colision(1),grado-1));
+                                Throughput(grado)=Throughput(grado)+1;
+                            else
+                                %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
+                                Pkt(Aux_n_pkt,5)=3;
 
-                            %asignamos a cada grado, el numero de paquetes que encontraron el buffer lleno
-                            if (grado == 2)
-                                aux_buffer_2 = aux_buffer_2 + 1;
-                            elseif (grado == 3)
-                                aux_buffer_3 = aux_buffer_3 + 1;
-                            elseif (grado == 4)
-                                aux_buffer_4 = aux_buffer_4 + 1;
-                            elseif (grado == 5)
-                                aux_buffer_5 = aux_buffer_5 + 1;
-                            elseif (grado == 6)
-                                aux_buffer_6 = aux_buffer_6 + 1;
-                            elseif (grado == 7)
-                                aux_buffer_7 = aux_buffer_7 + 1;
+                                %asignamos a cada grado, el numero de paquetes que encontraron el buffer lleno
+                                if (grado == 2)
+                                    aux_buffer_2 = aux_buffer_2 + 1;
+                                elseif (grado == 3)
+                                    aux_buffer_3 = aux_buffer_3 + 1;
+                                elseif (grado == 4)
+                                    aux_buffer_4 = aux_buffer_4 + 1;
+                                elseif (grado == 5)
+                                    aux_buffer_5 = aux_buffer_5 + 1;
+                                elseif (grado == 6)
+                                    aux_buffer_6 = aux_buffer_6 + 1;
+                                elseif (grado == 7)
+                                    aux_buffer_7 = aux_buffer_7 + 1;
+                                end
                             end
-
-
+                        else
+                            
                         end
+                        
                     else %cuando grado=1
                         Pkt(Aux_n_pkt,6)=tsim;%indica el tiempo que tomo para que este lograra llegar al nodo sink
                         n_paquetes_sink=n_paquetes_sink+1;
