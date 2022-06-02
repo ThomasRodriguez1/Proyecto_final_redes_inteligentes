@@ -58,7 +58,7 @@ ta=-1; %valor para que ta sea menor a tsim al inicio del n ciclos
 
 %inicializcion de buffers y contador paquetes
 N_zeros=30000000; %tamaño array general del buffer y de otros
-Buffer = zeros(N(N_index),K,I); %K,Nodos,Grados
+Buffer = zeros(K,N(N_index),I); %K,Nodos,Grados
 Pkt=zeros(N_zeros,6);%cantidad de paquetes, susceptible a cambio en base a N_zeros [n_paquete,nodo,grado,ta,estado,tiempo_total]
 backoff=zeros(N(N_index));%Array para los contendientes de paquetes a enviar
 
@@ -97,14 +97,14 @@ while n_ciclos <300000
         nuevot = -(1/lambda_2)*log(1-U);
         ta=tsim+nuevot;
         
-        if Buffer(nodo_random,15,grado_random)==0
+        if Buffer(15,nodo_random,grado_random)==0
             n_paquetes=n_paquetes+1;
             Pkt(n_paquetes,1) = n_paquetes;
             Pkt(n_paquetes,2) = nodo_random;
             Pkt(n_paquetes,3) = grado_random;
             Pkt(n_paquetes,4) = ta;
-            Buffer(nodo_random,15,grado_random)=n_paquetes;
-            Buffer(nodo_random,:,grado_random)=FIFO_buffer(Buffer(nodo_random,:,grado_random));
+            Buffer(15,nodo_random,grado_random)=n_paquetes;
+            Buffer(:,nodo_random,grado_random)=FIFO_buffer(Buffer(:,nodo_random,grado_random));
             
          
              %fprintf("grado:"+grado_random+" nodo:"+nodo_random+" n_paquete:"+n_paquetes+"\n");
@@ -123,9 +123,9 @@ while n_ciclos <300000
     %if Ranuras(grado_iterable,ranuras)==1  %Recepcion
         if Rx_flag==true
             if grado_iterable~=1 %nodo Sink, por lo tanto no hay porque agregar mas paquetes a otros nodos 
-                if Buffer(Colision(1),15,grado_iterable)==0  %que la cola del buffer tenga espacio para otro paquete
-                    Buffer(Colision(1),15,grado_iterable)=Aux_n_pkt;%se le asigna el numero del paquete tomado anteriormente
-                    Buffer(Colision(1),:,grado_iterable)=FIFO_buffer(Buffer(Colision(1),:,grado_iterable));
+                if Buffer(15,Colision(1),grado_iterable)==0  %que la cola del buffer tenga espacio para otro paquete
+                    Buffer(15,Colision(1),grado_iterable)=Aux_n_pkt;%se le asigna el numero del paquete tomado anteriormente
+                    Buffer(:,Colision(1),grado_iterable)=FIFO_buffer(Buffer(:,Colision(1),grado_iterable));
                     Throughput(grado_iterable)=Throughput(grado_iterable)+1;
                 else
                     %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
@@ -164,7 +164,7 @@ while n_ciclos <300000
         if grado_iterable~=1
             backoff=zeros(1,N(N_index));
              for nodo=1:N(N_index)
-            if Buffer(nodo,1,grado_iterable)~=0 %Si el paquete en 1 es diferente de 0 tiene un paquete por enviar
+            if Buffer(1,nodo,grado_iterable)~=0 %Si el paquete en 1 es diferente de 0 tiene un paquete por enviar
                 backoff(nodo)=randi(W(W_index),1); %Deberia de ser randi([0 W(W_index)-1],1) pero para evitar confusiones con la inicialiacion se hace de 1 a W
             else
                 backoff(nodo)=W(W_index)+1; %%Nunca se llegara a este valor, por lo cual se llena cuando no hay paquete que enviar o en el buffer  
@@ -178,9 +178,9 @@ while n_ciclos <300000
                 len_colision=length(Colision);%longitud de datos en array Colision
 
                 if len_colision==1  %Si hay mas de un valor, quiere decir que hay colision
-                    Aux_n_pkt=Buffer(Colision(1),1,grado_iterable);%tomamos numero del primer paquete del nodo
-                    Buffer(Colision(1),1,grado_iterable)=0;%Colocamos primer paquete en 0, que indica que esta vacio
-                    Buffer(Colision(1),:,grado_iterable)=FIFO_buffer(Buffer(Colision(1),:,grado_iterable));
+                    Aux_n_pkt=Buffer(1,Colision(1),grado_iterable);%tomamos numero del primer paquete del nodo
+                    Buffer(1,Colision(1),grado_iterable)=0;%Colocamos primer paquete en 0, que indica que esta vacio
+                    Buffer(:,Colision(1),grado_iterable)=FIFO_buffer(Buffer(:,Colision(1),grado_iterable));
                     Rx_flag=true;
 
                     grado_iterable=grado_iterable-1; % 6 a 1
@@ -199,10 +199,10 @@ while n_ciclos <300000
                             end
                         end
                         aux_index=Colision(col);%toma el valor del indice del buffer(nodo) en array colisiones
-                        aux_colision=Buffer(aux_index,1,grado_iterable);
+                        aux_colision=Buffer(1,aux_index,grado_iterable);
                         Pkt(aux_colision,5)=2; %colocamos estado "2" de colision con otros paquetes
-                        Buffer(aux_index,1,grado_iterable)=0;
-                        Buffer(aux_index,:,grado_iterable)=FIFO_buffer(Buffer(aux_index,:,grado_iterable));
+                        Buffer(1,aux_index,grado_iterable)=0;
+                        Buffer(:,aux_index,grado_iterable)=FIFO_buffer(Buffer(aux_index,:,grado_iterable));
                     end
                     Rx_flag=false; %nada que recibir el grado 7
                     grado_iterable=grado_iterable-1; % 6 a 1
