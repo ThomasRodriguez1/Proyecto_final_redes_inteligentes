@@ -41,8 +41,8 @@ lambda = [ 0.0005, 0.005, 0.03 ] ; % Tasa de generacion de paquetes por segundo
 
 
 %indices de valores de miniranuras, N°de nodos por grado y del valor de lambda
-W_index=5;
-N_index=4;
+W_index=3;
+N_index=2;
 lambda_index=3;
 
 %duracion ranura
@@ -57,7 +57,7 @@ ta=-1; %valor para que ta sea menor a tsim al inicio del n ciclos
 
 
 %inicializcion de buffers y contador paquetes
-N_zeros=30000000; %tamaño array general del buffer y de otros
+N_zeros=3000000; %tamaño array general del buffer y de otros
 Buffer = zeros(K,N(N_index),I); %K,Nodos,Grados
 Pkt=zeros(N_zeros,6);%cantidad de paquetes, susceptible a cambio en base a N_zeros [n_paquete,nodo,grado,ta,estado,tiempo_total]
 backoff=zeros(N(N_index));%Array para los contendientes de paquetes a enviar
@@ -126,7 +126,7 @@ while n_ciclos <300000
                 if Buffer(15,Colision(1),grado_iterable)==0  %que la cola del buffer tenga espacio para otro paquete
                     Buffer(15,Colision(1),grado_iterable)=Aux_n_pkt;%se le asigna el numero del paquete tomado anteriormente
                     Buffer(:,Colision(1),grado_iterable)=FIFO_buffer(Buffer(:,Colision(1),grado_iterable));
-                    Throughput(grado_iterable)=Throughput(grado_iterable)+1;
+                    Throughput(grado_iterable+1)=Throughput(grado_iterable+1)+1;
                 else
                     %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
                     Pkt(Aux_n_pkt,5)=3;
@@ -145,7 +145,7 @@ while n_ciclos <300000
             else %cuando grado=1
                     Pkt(Aux_n_pkt,6)=tsim;%indica el tiempo que tomo para que este lograra llegar al nodo sink
                     n_paquetes_sink=n_paquetes_sink+1;
-                    Throughput(grado_iterable)=Throughput(grado_iterable)+1;
+                    Throughput(grado_iterable+1)=Throughput(grado_iterable+1)+1;
                   %  ranuras=ranuras+1;
                     
 
@@ -222,6 +222,7 @@ while n_ciclos <300000
             grado_iterable=I;
             n_ciclos=n_ciclos+1;
             tsim=tsim+T+Tc; 
+            Rx_flag=false;
            % ranuras=1;
         end
        
@@ -269,32 +270,6 @@ grid on
 
 toc %acaba contador
 
-%Generacion de nuevo paquete y asignacion al buffer
-function [n_paquetes,Aux,Pkt_aux]=arribo(ta,n_paquetes,Aux,nodo_random,grado_random)
-
-Pkt_aux=zeros(1,6);
-
-%generacion y asignacion de paquetes
-
-
-
-Pkt_aux(1) = n_paquetes;
-Pkt_aux(2) = nodo_random;
-Pkt_aux(3) = grado_random;
-Pkt_aux(4) = ta;
-%Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
-
-if Aux(15)==0
-    
-        Aux(15)=n_paquetes;
-        Aux=FIFO_buffer(Aux);%Funcion para recorrer el buffer 
-else
- 
-        Pkt_aux(5)=3;
-                        
-end
-
-end
 
 %%moviendo paquetes recien ingresados del buffer(15) al buffer mas cercano
 %%al inicio que no este ocupado
@@ -310,7 +285,11 @@ len_aux_faltante=len_aux-len_aux2;%ceros faltantes
 
 Buffer=[Buffer zeros(1,len_aux_faltante)];%transpuesta regresando la columna
 Buffer=Buffer.';
+
 end
+
+
+
 
 
 
