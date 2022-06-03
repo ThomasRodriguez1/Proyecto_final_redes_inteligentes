@@ -68,6 +68,8 @@ aux_buffer_ = 0;
 
 %arrays para guardar las estadisticas de los paquetes cuando el buffer este lleno 
 a_buffer_lleno=zeros(1,7);    
+RetardoTotal = zeros(1, 7);
+g_ExitososVsPerdidos = zeros(1, 2); %grafica de paquetes exitosos vs perdidos
 
 %variables contadoras
 n_ciclos=0;
@@ -233,6 +235,21 @@ end
 
 %%impresion de estadisticas
 
+%paquetes exitosos
+figure()
+stem( Throughput, 'LineWidth',2)
+xlim([0 8])
+title('Throughput')
+ylabel('Paquetes transmitidos exitosamente')
+xlabel('Grado')
+grid on
+
+figure()
+labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(Throughput, '%.3f%%')
+title('Throughput')
+lgd = legend(labels);
+
 %grafica de coliciones por grado
 figure()
 stem(a_colisiones, 'LineWidth',2)
@@ -242,14 +259,11 @@ ylabel('# paquetes colisionados')
 xlabel('Grado')
 grid on
 
-%paquetes exitosos
 figure()
-stem( Throughput, 'LineWidth',2)
-xlim([0 8])
-title('Throughput')
-ylabel('Paquetes transmitidos exitosamente')
-xlabel('Grado')
-grid on
+labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(a_colisiones, '%.3f%%')
+title('Paquetes colisionados')
+lgd = legend(labels);
 
 %grafica de los paquetes que encontaron el buffer lleno por grado
 figure()
@@ -260,13 +274,40 @@ ylabel('# paquetes sin Tx')
 xlabel('Grado')
 grid on
 
+
+figure()
+labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(a_buffer_lleno, '%.3f%%')
+title('Paquetes que encontraron el buffer lleno')
+lgd = legend(labels);
+
+%Paquetes que fueron Tx y que se perdieron
 figure()
 stem(a_colisiones + a_buffer_lleno, 'LineWidth',2)
 xlim([0 8])
-title('Paquetes perdidos por grado')
+title('Paquetes Tx perdidos por grado')
 ylabel('# paquetes perdidos')
 xlabel('Grado')
 grid on
+
+%paquetes perdidos por grado para una mejor comprension 
+figure()
+labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(a_colisiones + a_buffer_lleno, '%.3f%%')
+title('Paquetes Tx perdidos')
+lgd = legend(labels);
+
+%grafica de paquetes Tx exitosamente vs paquetes perdidos
+g_ExitososVsPerdidos(1, 1) = sum(a_buffer_lleno)+ sum(a_colisiones);
+g_ExitososVsPerdidos(1, 2) = sum(Throughput);
+
+figure()
+labels = {'Perdidos', 'Exitosamente'};
+pie(g_ExitososVsPerdidos, '%.3f%%')
+title('Paquetes Tx')
+lgd = legend(labels);
+
+
 
 toc %acaba contador
 
