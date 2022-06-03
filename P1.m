@@ -69,6 +69,8 @@ aux_buffer_ = 0;
 %arrays para guardar las estadisticas de los paquetes cuando el buffer este lleno 
 a_buffer_lleno=zeros(1,7);    
 RetardoTotal = zeros(1, 7);
+retardo = 0;
+aux_retardo=0;
 g_ExitososVsPerdidos = zeros(1, 2); %grafica de paquetes exitosos vs perdidos
 
 %variables contadoras
@@ -88,6 +90,7 @@ lambda_2=lambda(lambda_index)*N(N_index)*I;
 
 while n_ciclos <300000
     
+    tic
 
     while ta<tsim 
         
@@ -200,6 +203,7 @@ while n_ciclos <300000
                                 a_colisiones(e)=a_colisiones(e)+1;%Aumenta contador de paquetes colisionados
                             end
                         end
+
                         aux_index=Colision(col);%toma el valor del indice del buffer(nodo) en array colisiones
                         aux_colision=Buffer(1,aux_index,grado_iterable);
                         Pkt(aux_colision,5)=2; %colocamos estado "2" de colision con otros paquetes
@@ -229,8 +233,17 @@ while n_ciclos <300000
         end
        
    % end
+    aux_retardo=toc;
+
+    for e=1:I
+        if e==grado_random
+            RetardoTotal(e)=RetardoTotal(e)+aux_retardo;%Aumenta el tiempo que tardo el proceso en cada grado
+        end
+    end
     
 end
+
+retardo = sum(RetardoTotal)
 
 
 %%impresion de estadisticas
@@ -307,6 +320,20 @@ pie(g_ExitososVsPerdidos, '%.3f%%')
 title('Paquetes Tx')
 lgd = legend(labels);
 
+%grafica de retardos por grado
+figure()
+stem(RetardoTotal, 'LineWidth',2)
+xlim([0 8])
+title('Retardo por grado')
+ylabel('tiempo [s]')
+xlabel('Grado')
+grid on
+
+figure()
+labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(RetardoTotal, '%.3f%%')
+title('Retardo por grado')
+lgd = legend(labels);
 
 
 toc %acaba contador
