@@ -53,7 +53,7 @@ T=durDATA+durRTS+durCTS+DIFS+durACK+(sigma.*W(W_index))+(3*SIFS); %
 Tc = (2+Epsilon-I).*T;%2+18-7=13
 
 tsim = 0; % tiempo de simulacion inicia en 0
-ta=-1; %valor para que ta sea menor a tsim al inicio del n ciclos
+ta=0; %valor para que ta sea menor a tsim al inicio del n ciclos
 
 
 %inicializcion de buffers y contador paquetes
@@ -94,7 +94,7 @@ while n_ciclos <300000
     
     %%%%%%%%%%%tic
 
-    while ta<tsim 
+    while ta<=tsim 
         
         %nodo y grado aleatorio
         nodo_random=randi(N(N_index),1);
