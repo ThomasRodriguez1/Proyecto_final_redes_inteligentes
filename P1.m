@@ -363,7 +363,7 @@ figure()
 stem(retardo_por_grado_promedio(:,3), 'LineWidth',2)
 xlim([0 8])
 title('Retardo por grado')
-ylabel('tiempo [s]')
+ylabel('tiempo [ms]')
 xlabel('Grado')
 grid on
 
