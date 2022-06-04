@@ -67,9 +67,10 @@ a_colisiones = zeros(1,7);
 aux_buffer_ = 0;
 
 %arrays para guardar las estadisticas de los paquetes cuando el buffer este lleno 
-a_buffer_lleno=zeros(1,7);    
+a_buffer_lleno=zeros(1,7);
+descartado_grados=zeros(1,7);
 RetardoTotal = zeros(1, 7);
-retardo = 0;
+%%%retardo = 0;
 aux_retardo=0;
 g_ExitososVsPerdidos = zeros(1, 2); %grafica de paquetes exitosos vs perdidos
 
@@ -88,9 +89,10 @@ Tx_flag=true;
 lambda_2=lambda(lambda_index)*N(N_index)*I;
 
 
+
 while n_ciclos <300000
     
-    tic
+    %%%%%%%%%%%tic
 
     while ta<tsim 
         
@@ -117,8 +119,10 @@ while n_ciclos <300000
             for e=1:I
                 if e==grado_random
                     a_buffer_lleno(e)=a_buffer_lleno(e)+1;%Aumenta contador de paquetes perdidos por buffer lleno
+                    descartado_grados(e)=descartado_grados(e)+1;%Paquetes descartados por el buffer lleno
                 end
             end
+            
         end
   
     end
@@ -132,6 +136,7 @@ while n_ciclos <300000
                     Buffer(15,Colision(1),grado_iterable)=Aux_n_pkt;%se le asigna el numero del paquete tomado anteriormente
                     Buffer(:,Colision(1),grado_iterable)=FIFO_buffer(Buffer(:,Colision(1),grado_iterable));
                     Throughput(grado_iterable+1)=Throughput(grado_iterable+1)+1;
+                    
                 else
                     %Verificacion buffer lleno  %1 exitoso 2=Colision 3=Buffer lleno
                     Pkt(Aux_n_pkt,5)=3;
@@ -148,9 +153,11 @@ while n_ciclos <300000
                % ranuras=ranuras+1;
 
             else %cuando grado=1
-                    Pkt(Aux_n_pkt,6)=tsim;%indica el tiempo que tomo para que este lograra llegar al nodo sink
                     n_paquetes_sink=n_paquetes_sink+1;
                     Throughput(grado_iterable+1)=Throughput(grado_iterable+1)+1;
+                    Pkt(Aux_n_pkt,5)=1; %1 exitoso
+                    Pkt(Aux_n_pkt,6)=tsim-Pkt(Aux_n_pkt,4);%indica el tiempo que tomo para que este lograra llegar al nodo sink
+                   
                   %  ranuras=ranuras+1;
                     
 
@@ -227,23 +234,37 @@ while n_ciclos <300000
         else
             grado_iterable=I;
             n_ciclos=n_ciclos+1;
-            tsim=tsim+T+Tc; 
+            tsim=tsim+13*T;
             Rx_flag=false;
            % ranuras=1;
         end
        
    % end
-    aux_retardo=toc;
 
-    for e=1:I
-        if e==grado_random
-            RetardoTotal(e)=RetardoTotal(e)+aux_retardo;%Aumenta el tiempo que tardo el proceso en cada grado
-        end
-    end
     
 end
+toc
 
-retardo = sum(RetardoTotal)
+
+%Pkt=Pkt(1:n_paquetes,:);¨
+Pkt2=Pkt(1:n_paquetes,:);%cantidad de paquetes, susceptible a cambio en base a N_zeros [n_paquete,nodo,grado,ta,estado,tiempo_total]
+
+retardo_por_grado_promedio=zeros(I,5);%suma,n_cantidad,promedio_seg,promedio_min,promedio_hora
+for a=1:n_paquetes
+    for e=2:I
+        if  Pkt2(a,3)==e && Pkt2(a,5)==1
+            retardo_por_grado_promedio(e,1)=retardo_por_grado_promedio(e,1)+Pkt2(a,6);
+            retardo_por_grado_promedio(e,2)=retardo_por_grado_promedio(e,2)+1;
+            break
+        end
+    end
+end
+
+for a=2:length(retardo_por_grado_promedio)
+    retardo_por_grado_promedio(a,3)=retardo_por_grado_promedio(a,1)/retardo_por_grado_promedio(a,2);%segundos
+    retardo_por_grado_promedio(a,4)=retardo_por_grado_promedio(a,3)/60;%minutos
+    retardo_por_grado_promedio(a,5)=retardo_por_grado_promedio(a,4)/60;%horas
+end
 
 
 %%impresion de estadisticas
@@ -263,6 +284,23 @@ pie(Throughput, '%.3f%%')
 title('Throughput')
 lgd = legend(labels);
 
+
+%grafica de paquetes descartados por grado
+figure()
+stem(descartado_grados, 'LineWidth',2)
+xlim([0 8])
+title('Paquetes descartados por grado')
+ylabel('# paquetes descartados')
+xlabel('Grado')
+grid on
+
+figure()
+labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(descartado_grados, '%.3f%%')
+title('Paquetes descartados por grado')
+lgd = legend(labels);
+
+
 %grafica de coliciones por grado
 figure()
 stem(a_colisiones, 'LineWidth',2)
@@ -273,8 +311,8 @@ xlabel('Grado')
 grid on
 
 figure()
-labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
-pie(a_colisiones, '%.3f%%')
+labels = {'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(a_colisiones(2:7), '%.3f%%')
 title('Paquetes colisionados')
 lgd = legend(labels);
 
@@ -322,7 +360,7 @@ lgd = legend(labels);
 
 %grafica de retardos por grado
 figure()
-stem(RetardoTotal, 'LineWidth',2)
+stem(retardo_por_grado_promedio(:,3), 'LineWidth',2)
 xlim([0 8])
 title('Retardo por grado')
 ylabel('tiempo [s]')
@@ -330,13 +368,13 @@ xlabel('Grado')
 grid on
 
 figure()
-labels = {'Grado 1', 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
-pie(RetardoTotal, '%.3f%%')
+labels = { 'Grado 2', 'Grado 3', 'Grado 4', 'Grado 5', 'Grado 6','Grado 7'};
+pie(retardo_por_grado_promedio(2:7,3), '%.3f%%')
 title('Retardo por grado')
 lgd = legend(labels);
 
 
-toc %acaba contador
+%toc %acaba contador
 
 
 %%moviendo paquetes recien ingresados del buffer(15) al buffer mas cercano
